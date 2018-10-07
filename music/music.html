@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>音乐播放器</title>
+	<style type="text/css">
+		#gray{
+			width: 300px;
+			height: 10px;
+			background-color: gray;
+			position: absolute;
+			top: 83px;
+			left: 0;
+			z-index: 1;
+		}
+		#red{
+			width: 0px;
+			height: 10px;
+			background-color: red;
+			position: absolute;
+			top: 83px;
+			left: 0;
+			z-index: 2;
+		}
+		#songsName{
+			width: 150px;
+			height: 30px;
+		}
+		#allSongs{
+			margin-top: 100px;
+			background-color: yellow;
+			width: 300px;
+		}
+		.song{
+			color: blue;
+		}
+	</style>
+</head>
+<body>
+
+	<marquee behavior="alternat" id="songsName"></marquee>
+    <audio id="play1">
+    </audio>
+	<button id="btn-prev" onclick ="prev()">上一首</button>
+	<button id="btn-play" onclick="start()">播放/暂停</button>
+	<button id="btn-next" onclick ="next()">下一首</button>
+	<button id="order" onclick = "orderPlay()">顺序</button>
+	<input type="range" id="volume"  onchange="changeVolume()">
+	<p id="playTime" >  </p>
+	<div id="gray"></div>
+	<div id="red"></div>
+	<p id="playTime" ></p>
+	<div id="allSongs">
+		
+	</div>
+
+
+</body>
+<script type="text/javascript">
+	var playIndex = 0;
+	var songs = [
+			"2017英雄联盟全球总决赛主题曲",
+			"G.E.M.邓紫棋 - 光年之外",
+			"GAI-沧海一声笑",
+			"JAEFOREAL - 是个好人 (Clear Version)",
+			"陈冠希 - 记得我吗"
+	];
+	var playtime = document.querySelector('#playTime');
+	var songTime = null; 
+	var progressBar = document.querySelector('#red');
+	var audio = document.querySelector('#play1');
+	var songsName = document.querySelector("#songsName");
+	var playC = document.querySelector('#gray');
+	var playVolume = document.querySelector('#volume');
+	var allSongs = document.querySelector('#allSongs');
+
+	var h;
+	for (var i = 0; i < songs.length; i++) {
+		h += `<div><a href="#" class="song" onclick = "aaa(${i})">${songs[i]}</a></div>`
+	}
+	allSongs.innerHTML = h;
+	// 播放暂停
+	var isPlaying = false;
+	var progressBarTimer = null;
+
+	// 播放暂停
+	function start() {
+		// 判断是否播放
+		if (!isPlaying) {
+			songsName.innerHTML = songs[playIndex];
+			audio.play();
+			playTime();
+		}else{
+			audio.pause();
+			clearInterval(progressBarTimer);
+
+		}
+		// 记录当前状态
+		isPlaying = !isPlaying;
+	}
+
+
+	// 获取歌曲的总时间  秒  当歌曲播放时后调用
+		audio.addEventListener("play",function() {
+			playTime();
+			var length = audio.duration;
+			progressBarTimer = setInterval(function () {
+				// 获取歌曲当前播放的时间
+				cur = audio.currentTime;
+				// 进度条的长度等于当前时间/总时间*进度条宽度
+				progressBar.style.width = parseFloat(cur/length)*300+"px";
+			},500)
+		})
+		
+	// 获取歌曲的总时间  秒  当歌曲加载完成后调用
+		audio.addEventListener("canplay",function() {
+			playTime();
+			var length = audio.duration;
+			progressBarTimer = setInterval(function () {
+				// 获取歌曲当前播放的时间
+				cur = audio.currentTime;
+				// 进度条的长度等于当前时间/总时间*进度条宽度
+				progressBar.style.width = parseFloat(cur/length)*300+"px";
+			},500)
+		})
+	
+
+	 //将进度条  播放时间重置
+    function resetProgressBar(){
+        clearInterval(progressBarTimer);
+        clearInterval(playTime);
+        progressBar.style.width="0";
+    }
+
+	// 播放时间
+	function playTime() {
+		songTime=setInterval(function () {
+			// 获取当前时间，转成分钟秒钟 
+			cur = parseInt(audio.currentTime);
+			var minute1 = parseInt(cur/60);
+			var second1 = cur%60;
+
+			var songsLength = parseInt(audio.duration);
+			var minute2 = parseInt(songsLength/60);
+			var second2 = songsLength%60;
+			// 秒钟个位数时补零
+			if (second1 < 10) {
+				playtime.innerHTML = minute1+":0"+second1+"/"+minute2+":"+second2;
+				if (second2 < 10) {
+					playtime.innerHTML = minute1+":0"+second1+"/"+minute2+":0"+second2;
+				}
+			}else{
+				playtime.innerHTML = minute1+":"+second1+"/"+minute2+":"+second2;
+				if (second2 < 10) {
+					playtime.innerHTML = minute1+":"+second1+"/"+minute2+":0"+second2;
+				}
+			}
+		},1000);
+	}
+
+
+	 //上一曲
+    function prev(){
+        resetProgressBar();
+        playIndex--;
+        if(playIndex==-1){
+            playIndex=songs.length-1;
+        }
+		songsName.innerHTML = songs[playIndex];
+		audio.src = "./music/" + songs[playIndex] + ".mp3";
+		audio.load();
+		audio.pause();
+		audio.play();
+		isPlaying = true;
+    }
+
+    //下一曲
+    function next(){
+        resetProgressBar();
+        playIndex++;
+        if(playIndex>songs.length-1){
+            playIndex=0;
+        }
+		songsName.innerHTML = songs[playIndex];
+		audio.src = "./music/" + songs[playIndex] + ".mp3";
+		audio.load();
+        audio.pause();
+		audio.play();
+		isPlaying = true;
+
+    }
+
+     //点击文字切歌
+
+
+ 
+        var asong = document.querySelectorAll(".song");
+
+        function aaa(i) {
+        	asong[i].style.color = "red";
+        	console.log(i);
+        	songsName.innerHTML = songs[i];
+			audio.src = "./music/" + songs[i] + ".mp3";
+			audio.load();
+			audio.pause();
+			audio.play();
+			isPlaying = true;
+
+        }
+    
+       
+       
+
+    
+
+    
+
+  
+      
+      //调整播放进度
+    function playControl(e){
+    	//获取参数dom中离鼠标的距离
+        var x=e.offsetX;
+        var lenth=audio.duration;
+        // 进度条的长度等于距离
+        progressBar.style.width=x+"px";
+        // 把长度转化成歌曲当前时间
+        audio.currentTime=parseInt(x*lenth/300);
+        audio.play();
+    }  
+
+    playC.onclick = function(playC){
+    	playControl(playC)
+    }  
+    progressBar.onclick = function (playC) {
+    	playControl(playC)
+    	
+    }  
+
+    //调整音量大小
+    function changeVolume(){
+    	// 歌曲的值等于控制条的值除以100
+  		audio.volume = playVolume.value/100;
+    }
+
+  
+    //播放顺序
+    var order = document.querySelector("#order");
+    function orderPlay(){
+    		
+	    	if (order.innerHTML === "顺序") {
+	    		order.innerHTML = "随机";
+	    		random = setInterval(function () {
+	    			if(audio.ended){
+		    			playIndex = parseInt(Math.random()*songs.length);
+		                next();
+	            	}
+	    		},1000)
+	    	}else{
+	    		order.innerHTML = "顺序";
+	    		haveOrder=setInterval(function(){
+		            if(audio.ended){
+		                next();
+		            }
+	        	},1000);
+	    	}
+	    	
+    }
+orderPlay();
+
+
+
+</script>
+</html>
